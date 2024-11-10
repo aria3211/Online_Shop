@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+    
+    <form action="" method="post" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Send">
+        <br>
+        <a href="{% url "accounts:user_register" %}" value="Don't have any account?">Sigin</a>
+        <br>
+    </form>
+
+
+{% endblock content %}
+
+
+
+

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>{{product.name}}</h2>
+    <hr>
+    <figure class="figure"> 
+        <img src="{{product.image.url}}" width="400" height="500" class="figure-img img-fluid rounded" alt="...">
+        <figcaption class="figure-caption">{{product.created}}</figcaption>
+      </figure>
+    <hr>
+    <p>{{product.price}}</p>
+    <br>
+    <form action="{% url 'orders:cart_add' product.id %}" method="post">
+    {% csrf_token %}
+    {{ form }}
+        <input type="submit" value="add">
+    </form>
+
+{% endblock content %}
+
+
+
