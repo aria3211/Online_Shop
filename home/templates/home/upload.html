@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extera_headers %}
+<link rel="stylesheet" href="{% static 'home/css/style.css' %}">
+
+{% endblock  %}
+
+{% block content %}
+<h2>Upload Photo</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Upload</button>
+</form>
+
+<h3>Uploaded Files</h3>
+<ul>
+    {% for photo in uploaded_photos %}
+    <li>
+        <strong>{{ photo.name }}</strong>: 
+        <a href="{{ photo.permanent_link }}" target="_blank">Permanent Link</a>
+        |
+        <a href="{{ photo.temporary_link }}" target="_blank">Temporary Link</a>
+        |
+        <a href="{% url 'home:download_photo' photo.name|urlencode %}">Download</a>
+        |
+        <a href="{% url 'home:delete_photo' photo.name %}">Delete</a>  <!-- Ensure this line is correct -->
+    </li>
+    {% endfor %}
+</ul>
+
+
+{% endblock content %}
+
+
+
