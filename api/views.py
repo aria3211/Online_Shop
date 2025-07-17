@@ -7,9 +7,9 @@ from rest_framework.decorators import api_view
 from django.http import JsonResponse
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 
-
-class ProductListView(generics.ListAPIView):
+class ProductListView(generics.ListCreateAPIView):
     queryset = Product.objects.filter(stock__gt=0)
     serializer_class = ProductSerializer
 
@@ -26,7 +26,8 @@ class ProductListView(generics.ListAPIView):
 #     product = get_object_or_404(Product,id=pk)
 #     serializer = ProductSerializer(product)
 #     return Response(serializer.data)
-
+    
+# return single object from database
 class ProductDetailView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -51,13 +52,23 @@ class UserOrderListView(generics.ListAPIView):
         qs = super().get_queryset()
         return qs.filter(user=self.request.user)
 
-@api_view(['GET'])
-def product_info(request):
+
+class ProductInfoApiView(APIView):
     products = Product.objects.all()
     serializer = ProductInfoSerializer({
         'products':products,
         'count': len(products),
         'max_price':products.aggregate(max_price=Max('price'))['max_price']
     })
+
+
+# @api_view(['GET'])
+# def product_info(request):
+#     products = Product.objects.all()
+#     serializer = ProductInfoSerializer({
+#         'products':products,
+#         'count': len(products),
+#         'max_price':products.aggregate(max_price=Max('price'))['max_price']
+#     })
     
-    return Response(serializer.data)
+#     return Response(serializer.data)
