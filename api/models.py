@@ -7,12 +7,6 @@ import uuid
 
 class User(AbstractUser):
     pass
-    # user_id = models.UUIDField(primary_key=True,default=uuid.uuid4)
-    # email = models.EmailField(max_length=255,unique=True)
-    # full_name = models.CharField(max_length=100)
-    # is_active = models.BooleanField(default=True)
-    # is_admin = models.BooleanField(default=False)
-
 class Product(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()

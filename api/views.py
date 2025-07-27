@@ -7,10 +7,15 @@ from rest_framework.decorators import api_view
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated,AllowAny,IsAdminUser
 from rest_framework.views import APIView
+from api.filters import ProductFilter
+
+
+
 
 class ProductListCreateView(generics.ListCreateAPIView):
     queryset = Product.objects.filter(stock__gt=0)
     serializer_class = ProductSerializer
+    filter_backends = ProductFilter
 
     def get_permissions(self):
         self.permission_classes = [AllowAny]
@@ -25,7 +30,7 @@ class ProductListCreateView(generics.ListCreateAPIView):
 #     serializer = ProductSerializer(products,many=True)
 #     return Response(
 #         serializer.data
-#     )
+#     ) 
 
 # @api_view(['GET'])
 # def product_detail(request,pk):
