@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import Product, Order, OrderItem
-
+from .models import Product, Order, OrderItem,User
+# from django.contrib.auth.models import User
 
 
 
@@ -37,6 +37,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     
 class OrderSerializer(serializers.ModelSerializer):
+    order_id = serializers.UUIDField(read_only=True)
     items = OrderItemSerializer(many=True,read_only=True)
     total_price = serializers.SerializerMethodField()
     class Meta:
@@ -60,3 +61,9 @@ class ProductInfoSerializer(serializers.Serializer):
     products = ProductSerializer(many=True)
     count = serializers.IntegerField()
     max_price =  serializers.FloatField()
+
+
+class ListOfUsersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"

@@ -1,20 +1,25 @@
 from django.db.models import Max
 from django.shortcuts import get_object_or_404
-from api.serialaizers import ProductSerializer,OrderItemSerializer,OrderSerializer,ProductInfoSerializer
-from api.models import Product,Order,OrderItem
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated,AllowAny,IsAdminUser
-from rest_framework.views import APIView
-from api.filters import ProductFilter,InStockFilterBackend
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
+from rest_framework import filters, generics, pagination
+from rest_framework.decorators import action, api_view
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 
+from api.filters import InStockFilterBackend, OrderFilter, ProductFilter
+from api.models import Order, OrderItem, Product, User
+from api.serialaizers import (ListOfUsersSerializer, OrderItemSerializer,
+                              OrderSerializer, ProductInfoSerializer,
+                              ProductSerializer)
+
+# from django.contrib.auth.models import User
 
 
 class ProductListCreateView(generics.ListCreateAPIView):
-    queryset = Product.objects.filter(stock__gt=0)
+    # queryset = Product.objects.filter(stock__gt=0)
+    queryset = Product.objects.order_by('pk')
     serializer_class = ProductSerializer
     filterset_class = ProductFilter
     filter_backends = [DjangoFilterBackend,
@@ -25,11 +30,27 @@ class ProductListCreateView(generics.ListCreateAPIView):
     search_fields = ['name','price']
     order_fields = ['name','stock']
 
+    # pagination with pagenumberpagination
+    ''' pagination_class = pagination.PageNumberPagination
+    pagination_class.page_size = 5
+    pagination_class.page_query_param = 'Pagenumber'
+    pagination_class.page_size_query_param = 'size'
+    pagination_class = 10  '''
+    pagination_class = pagination.LimitOffsetPagination
+
+
     def get_permissions(self):
         self.permission_classes = [AllowAny]
         if self.request.method == "POST":
             self.permission_classes = [IsAdminUser]
         return super().get_permissions()
+
+class ListOfUsersView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = ListOfUsersSerializer
+
+    # def get_password(self):
+    #     self.
 
 
 # @api_view(['GET'])
@@ -63,7 +84,33 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
 #     order = Order.objects.prefetch_related('items__product')
 #     serializer = OrderSerializer(order,many=True)
 #     return Response(serializer.data)
+    
+# adding viewset for ordering
+class OrderViewSet(ModelViewSet):
+    queryset = Order.objects.prefetch_related('items__product')
+    serializer_class = OrderSerializer
+    permission_classes = [AllowAny]
+    pagination_class = None
+    filterset_class = OrderFilter
+    filter_backends = [DjangoFilterBackend]
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not self.request.user.is_staff:
+            qs = qs.filter(user=self.request.user)
+        return qs
+
+    @action(detail=False,methods=['get'],url_path='user_orders',permission_classes=[IsAuthenticated])
+    def user_orders(self,request):
+        orders = self.get_queryset().filter(user=request.user)
+        serializer = self.get_serializer(orders,many=True)
+        return Response(serializer.data)
+
+
+
+
+
+'''
 class OrderListView(generics.ListAPIView):
     queryset = Order.objects.prefetch_related('items__product')
     serializer_class = OrderSerializer
@@ -77,7 +124,7 @@ class UserOrderListView(generics.ListAPIView):
         qs = super().get_queryset()
         return qs.filter(user=self.request.user)
 
-
+'''
 class ProductInfoApiView(APIView):
     products = Product.objects.all()
     serializer = ProductInfoSerializer({
