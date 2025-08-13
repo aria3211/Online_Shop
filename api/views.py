@@ -12,7 +12,7 @@ from api.filters import InStockFilterBackend, OrderFilter, ProductFilter
 from api.models import Order, OrderItem, Product, User
 from api.serialaizers import (ListOfUsersSerializer, OrderItemSerializer,
                               OrderSerializer, ProductInfoSerializer,
-                              ProductSerializer)
+                              ProductSerializer,OrderCreateSerializer)
 
 # from django.contrib.auth.models import User
 
@@ -47,6 +47,8 @@ class ProductListCreateView(generics.ListCreateAPIView):
 
 class ListOfUsersView(generics.ListAPIView):
     queryset = User.objects.all()
+    pagination_class = None
+
     serializer_class = ListOfUsersSerializer
 
     # def get_password(self):
@@ -89,10 +91,20 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
 class OrderViewSet(ModelViewSet):
     queryset = Order.objects.prefetch_related('items__product')
     serializer_class = OrderSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     pagination_class = None
     filterset_class = OrderFilter
     filter_backends = [DjangoFilterBackend]
+
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+    
+    
+    def get_serializer_class(self):
+        if self.action =='create':
+            return OrderCreateSerializer
+        return super().get_serializer_class()
 
     def get_queryset(self):
         qs = super().get_queryset()

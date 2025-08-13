@@ -21,8 +21,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class OrderItemSerializer(serializers.ModelSerializer):
     # product = ProductSerializer()
-    product_name = serializers.CharField(source='product.name')
-    product_price = serializers.CharField(source='product.price')
+    product_name = serializers.CharField(source='product.name',read_only=True)
+    product_price = serializers.CharField(source='product.price',read_only=True)
     class Meta:
         model = OrderItem
         fields = (
@@ -34,8 +34,6 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 
-
-    
 class OrderSerializer(serializers.ModelSerializer):
     order_id = serializers.UUIDField(read_only=True)
     items = OrderItemSerializer(many=True,read_only=True)
@@ -56,6 +54,38 @@ class OrderSerializer(serializers.ModelSerializer):
        return total
 
 
+
+
+class OrderCreateSerializer(serializers.ModelSerializer):
+    class OrderItemCreateSerializer(serializers.ModelSerializer):
+        class Meta:
+            model= OrderItem
+            fields= ('product', 'quantity')
+    order_id = serializers.UUIDField(read_only=True)
+    items = OrderItemSerializer(many=True)
+    class Meta:
+
+        model = Order
+        fields = (
+            'order_id',
+            'user',
+            'created_at',
+            'status',
+            'items',
+        )
+        extra_kwargs = {
+            'user': {'read_only': True}
+        }
+
+    
+    def create(self, validated_data):
+        orderitem_data = validated_data.pop('items')
+        order = Order.objects.create(**validated_data)
+
+        for item in orderitem_data:
+            OrderItem.objects.create(order=order,**item)
+        return order
+
 class ProductInfoSerializer(serializers.Serializer):
     # get info of product,count & max price
     products = ProductSerializer(many=True)
@@ -63,7 +93,16 @@ class ProductInfoSerializer(serializers.Serializer):
     max_price =  serializers.FloatField()
 
 
+
+
 class ListOfUsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = "__all__"
+
+
+class UserCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ""
+
