@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 from .models import Product, Order, OrderItem,User
 # from django.contrib.auth.models import User
@@ -62,7 +63,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             model= OrderItem
             fields= ('product', 'quantity')
     order_id = serializers.UUIDField(read_only=True)
-    items = OrderItemSerializer(many=True)
+    items = OrderItemSerializer(many=True,required=False)
     class Meta:
 
         model = Order
@@ -76,6 +77,21 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'user': {'read_only': True}
         }
+
+    def update(self,instance,validated_data):
+        orderitem_data = validated_data.pop('items')
+
+        with transaction.atomic():
+            instance = super().update(instance,validated_data)
+            print('instance ----> : ')
+
+            if orderitem_data is not None:
+                instance.items.all().delete()
+                print('Delete All old items')
+
+                for item in orderitem_data:
+                    OrderItem.objects.create(order=instance,**item)
+        return instance
 
     
     def create(self, validated_data):
