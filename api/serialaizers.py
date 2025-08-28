@@ -1,3 +1,5 @@
+from multiprocessing import managers
+from pickletools import read_long1
 from django.db import transaction
 from rest_framework import serializers
 from .models import Product, Order, OrderItem,User
@@ -112,11 +114,26 @@ class ProductInfoSerializer(serializers.Serializer):
 
 
 class ListOfUsersSerializer(serializers.ModelSerializer):
+    orders = serializers.SerializerMethodField()
+    items = OrderItemSerializer(many=True,read_only=True)
+    total_price = serializers.SerializerMethodField()
+    
     class Meta:
         model = User
-        fields = "__all__"
+        # exclude = ('password')
+        fields = ("username","email","is_staff","is_superuser","total_price","items","orders")
+    
+    def get_orders(self,obj):
+        all_orders = obj.orders.all()
 
+        items = OrderItem.objects.filter(order__in=all_orders)
+        return OrderItemSerializer(items,many=True).data
 
+    def get_total_price(self,obj):
+        last_order = obj.orders.order_by("created_at").first()  
+        if last_order:
+            return OrderSerializer(last_order).data.get("total_price")
+        return None
 class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

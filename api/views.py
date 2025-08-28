@@ -1,5 +1,7 @@
 from django.db.models import Max
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, pagination
 from rest_framework.decorators import action, api_view
@@ -37,6 +39,15 @@ class ProductListCreateView(generics.ListCreateAPIView):
     pagination_class.page_size_query_param = 'size'
     pagination_class = 10  '''
     pagination_class = pagination.LimitOffsetPagination
+
+    @method_decorator(cache_page(60*15,key_prefix='product_list'))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        import time
+        time.sleep(2)
+        return super().get_queryset()
 
 
     def get_permissions(self):
