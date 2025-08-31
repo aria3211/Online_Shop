@@ -1,7 +1,7 @@
 import django_filters
 from rest_framework import filters
 
-from api.models import Order, Product
+from api.models import Order, Product,Category
 
 
 class ProductFilter(django_filters.FilterSet):
@@ -27,3 +27,12 @@ class OrderFilter(django_filters.FilterSet):
             'status':['exact'],
             'created_at':['gt','lt','exact']
         }
+
+
+# class CategoryFilter(django_filters.FilterSet):
+#      class Meta:
+#         model=Category
+#         fields = {
+#             'status':['exact'],
+#             'category':['gt','lt','exact']
+#         }

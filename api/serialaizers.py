@@ -1,13 +1,15 @@
 from multiprocessing import managers
 from pickletools import read_long1
+from re import S
 from django.db import transaction
 from rest_framework import serializers
-from .models import Product, Order, OrderItem,User
+from .models import Product, Order, OrderItem,User,Category
 # from django.contrib.auth.models import User
 
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    category = serializers.StringRelatedField(many=True)
     class Meta:
         model = Product
         fields = (
@@ -15,7 +17,8 @@ class ProductSerializer(serializers.ModelSerializer):
             'name',
             'description',
             'price',
-            'stock'
+            'stock',
+            'category'
         )
     def validate_price(self, data):
         if data <=0:
@@ -32,7 +35,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
             'product',
             'quiantity',
             'product_name',
-            'product_price'
+            'product_price',
             )
 
 
@@ -139,3 +142,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         model = User
         fields = ""
 
+class ListCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = "__all__"

@@ -2,6 +2,7 @@ from django.db.models import Max
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, pagination
 from rest_framework.decorators import action, api_view
@@ -11,10 +12,10 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from api.filters import InStockFilterBackend, OrderFilter, ProductFilter
-from api.models import Order, OrderItem, Product, User
+from api.models import Category, Order, OrderItem, Product, User
 from api.serialaizers import (ListOfUsersSerializer, OrderItemSerializer,
                               OrderSerializer, ProductInfoSerializer,
-                              ProductSerializer,OrderCreateSerializer)
+                              ProductSerializer,OrderCreateSerializer,ListCategorySerializer)
 
 # from django.contrib.auth.models import User
 
@@ -27,7 +28,7 @@ class ProductListCreateView(generics.ListCreateAPIView):
     filter_backends = [DjangoFilterBackend,
                        filters.SearchFilter,
                        filters.OrderingFilter,
-                       InStockFilterBackend]
+                       InStockFilterBackend,]
     # filterset_fields=('name','price')
     search_fields = ['name','price']
     order_fields = ['name','stock']
@@ -156,7 +157,18 @@ class ProductInfoApiView(APIView):
         'max_price':products.aggregate(max_price=Max('price'))['max_price']
     })
 
+class CategoryInfoView(generics.ListCreateAPIView):
+    queryset = Category.objects.annotate(product__count=Count('products'))
+    serializer_class = ListCategorySerializer
 
+    @method_decorator(cache_page(60*10,key_prefix="category_list"))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    def get_queryset(self):
+        import time
+        time.sleep(5)
+        return super().get_queryset()
+        
 # @api_view(['GET'])
 # def product_info(request):
 #     products = Product.objects.all()
@@ -167,3 +179,4 @@ class ProductInfoApiView(APIView):
 #     })
     
 #     return Response(serializer.data)
+    
