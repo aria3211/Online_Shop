@@ -161,7 +161,9 @@ REST_FRAMEWORK = {
         'products_sustained': '20/hour'
         # 'burst': '10/min',
         # 'sustained': '15/hour'
-    }
+    },
+    "EXCEPTION_HANDLER": "api.throttles.custom_throttle_exception_handler"
+
 }
 
 SIMPLE_JWT = {
