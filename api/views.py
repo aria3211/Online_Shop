@@ -11,7 +11,8 @@ from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-
+from rest_framework.throttling import UserRateThrottle,ScopedRateThrottle
+from api.throttles import ProductBurstRateThrottle,ProductSustainedRateThrottle
 from api.filters import InStockFilterBackend, OrderFilter, ProductFilter
 from api.models import Category, Order, OrderItem, Product, User
 from api.serialaizers import (ListOfUsersSerializer, OrderItemSerializer,
@@ -33,6 +34,10 @@ class ProductListCreateView(generics.ListCreateAPIView):
     # filterset_fields=('name','price')
     search_fields = ['name','price']
     order_fields = ['name','stock']
+    throttle_classes = [ProductBurstRateThrottle,ProductSustainedRateThrottle]
+
+    
+    # throttle_scope = "products"
 
     # pagination with pagenumberpagination
     ''' pagination_class = pagination.PageNumberPagination

@@ -140,11 +140,28 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',],
 
+    # DjangoFilter settings
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend'],
-
+    
+    # Pagination settings 
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE':5
+    'PAGE_SIZE':5,
+
+    # Throttle seetings
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
+        # 'api.throttles.BurstRateThrottle',
+        # 'api.throttles.SustainedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '2/minute',
+        'products_burst':'3/minute',
+        'products_sustained': '20/hour'
+        # 'burst': '10/min',
+        # 'sustained': '15/hour'
+    }
 }
 
 SIMPLE_JWT = {
