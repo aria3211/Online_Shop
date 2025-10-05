@@ -19,6 +19,8 @@ from api.serialaizers import (ListOfUsersSerializer, OrderItemSerializer,
                               OrderSerializer, ProductInfoSerializer,
                               ProductSerializer,OrderCreateSerializer,ListCategorySerializer)
 
+from api.tasks import send_order_conf_email
+
 # from django.contrib.auth.models import User
 
 
@@ -96,7 +98,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_permissions(self):
         self.permission_classes = [AllowAny]
-        if self.permission_classes in ['PUT','PATCH','DELETE']:
+        if self.request.method in ['PUT','PATCH','DELETE']:
             self.permission_classes = [IsAdminUser]
         return super().get_permissions()
 
@@ -121,7 +123,8 @@ class OrderViewSet(ModelViewSet):
         return super().list(request, *args, **kwargs)
     
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        order = serializer.save(user=self.request.user)
+        send_order_conf_email.delay(order.order_id,self.request.user.email)
     
     
     def get_serializer_class(self):
